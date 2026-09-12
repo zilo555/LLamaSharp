@@ -225,7 +225,9 @@ jobs:
         include:
           - build: 'arm64'
             defines: '-T ClangCL -DCMAKE_GENERATOR_PLATFORM=ARM64 -DGGML_NATIVE=OFF'
-    runs-on: windows-latest
+    # windows-latest is VS 18; ClangCL there rebuilds ggml-cpu with C17 off after a
+    # C17 PCH, so llama.dll is never produced. Pin VS 2022 like compile-cublas.
+    runs-on: windows-2022
     steps:
       - uses: actions/checkout@v6
         with:
