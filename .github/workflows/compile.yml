@@ -224,9 +224,8 @@ jobs:
       matrix:
         include:
           - build: 'arm64'
-            defines: '-T ClangCL -DCMAKE_GENERATOR_PLATFORM=ARM64 -DGGML_NATIVE=OFF'
-    # windows-latest is VS 18; ClangCL there rebuilds ggml-cpu with C17 off after a
-    # C17 PCH, so llama.dll is never produced. Pin VS 2022 like compile-cublas.
+            # ClangCL + CMake PCH disagrees on C17 for ggml-cpu, so llama.dll is never built.
+            defines: '-T ClangCL -DCMAKE_GENERATOR_PLATFORM=ARM64 -DGGML_NATIVE=OFF -DCMAKE_DISABLE_PRECOMPILE_HEADERS=ON'
     runs-on: windows-2022
     steps:
       - uses: actions/checkout@v6
@@ -242,6 +241,7 @@ jobs:
           cd build
           cmake .. ${{ env.COMMON_DEFINE }} ${{ matrix.defines }}
           cmake --build . --config Release -j ${env:NUMBER_OF_PROCESSORS} --target ggml ggml-base ggml-cpu llama mtmd
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           tree /f
 
       - name: Upload artifacts (llama)
